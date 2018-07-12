@@ -1,0 +1,49 @@
+{% extends 'base.html' %} <!--說明用外界的模板-->
+{% block title %}  {{ blog.title }}{% endblock %}
+{% block nav_blog_active %}active{% endblock %}
+
+{% load staticfiles %}
+{% block home_style %}
+	<link rel="stylesheet" type="text/css" href="{% static "blog/blog.css" %}">
+{% endblock %}
+
+{% block content %}
+	<div class="container">
+		<div class="row">
+			<div class="col-sm-8 col-sm-offset-1">
+				<h3>{{ blog.title }}</h3>  <!--显示每一篇博客的标题-->
+				<ul class="blog-feature">
+					<li>作者：{{ blog.author }}</li>
+					<li>发表日期：{{ blog.Create_time }}</li>
+					<a href="{% url 'blogs_all_of_the_type' blog.blog_type.pk %}">
+						分类：<li>{{ blog.blog_type }}</li>
+					</a>
+					<li>阅读({{ blog.read_num }})</li>
+				</ul>
+				<div class="blog-content">
+					{{ blog.content|safe }}   <!--safe是过滤器,使得可以在内容中执行html代码-->
+				</div>
+				<div class="blog_next_and_previous">  <!--设置这篇博客与上下篇之间的链接-->
+					<p>
+						{% if previous_blog %}  <!--如果上一篇博客存在,则执行-->
+							上一篇:<a href="{% url 'blog_detail' previous_blog.pk %}">
+								{{ previous_blog.title }}
+							</a>	
+						{% else %}
+							上一篇:没有了
+						{% endif %}
+					</p>
+					<p>
+						{% if next_blog %}  <!--如果下一篇博客存在-->
+							下一篇:<a href="{% url 'blog_detail' next_blog.pk %}">
+								{{ next_blog.title }}
+							</a>
+						{% else %}
+							下一篇:没有了
+						{% endif %}
+					</p>
+				</div>
+			</div>
+		</div>
+	</div>
+{% endblock %}

@@ -1,0 +1,87 @@
+1,博客的简单计数
+为Blog模型增加一个计数的字段,每当有人点击,这个字段的数值+1
+首先在blog的models中增加一个Integer的int型字段,默认值default为0,
+记得同步数据库
+更改blog下的admin使得后台的界面出现readed_num这个字段.
+之后再在views里面修改blog_detail:,增加下面两个:
+the_blog.readed_num+=1  #计数加一
+the_blog.save()  #保存计数的变化
+保存文件,之后再在blog_detail.html和blog_list.html里面再合适的位置增加显示计数的代码:  阅读({{ blog.readed_num }})
+之后每次访问都能看到阅读次数的变化.
+
+下面确定计数规则(上面的规则有点问题,每次刷新都会计数,所以要设计一个规则):
+这里要用到cookie,
+对于views中blog_detail的
+return render_to_response('blog_detail.html',context)
+这句话来说,就是给页面返回一个响应,在这里我们先不返回,这行代码改为
+response=render_to_response('blog_detail.html',context)
+为已经阅读过的blog设置cookie,没有设置失效时间就是当浏览器关闭的时候(cookie自动清除)才会失效
+response.set_cookie('blog_%s_readed' % blog_id,'true')
+然后再return response
+cookie是以字典的形式存储的一个key对应一个value
+由于已经设置了cookie,所以对于下次访问的时候就先判断cookie中有没有'blog_%s_readed' % blog_id这个key,如果有的话就不进行+1操作,代码如下
+
+if not request.COOKIES.get('blog_%s_readed' % blog_id):  #当cookie不存在的时候才会进行阅读数+1
+	the_blog.readed_num+=1  #计数加一
+	the_blog.save()  #保存计数的变化
+
+
+2,计数功能的优化(1):
+对于上述计数功能,当我们在后台编辑的时候可能有人正在阅读,这时候的计数的数目就会发生错误,所以最好的方法就是将博客的models和计数的models拆开来分成两个class
+如下
+class blog(models.Model):  #设置博文的一些属性
+	pass
+class Readnum(models.Model):  
+    read_num=models.IntegerField(default=0)  #阅读计数,默认参数为0
+    the_blog=models.OneToOneField(blog,on_delete=models.DO_NOTHING)  #通过外键关联到特定的blog,是一对一的关系
+由于外键的关联,每个blog多了一个方法readnum(就是Readnum的小写),每个blog可以在blog类中通过blog.readnum_read_num来获得相应博客的阅读数量,代码入下:
+def read_num(self):
+    return self.readnum.read_num
+之后被忘了再blog的admin里面修改相应的字段,添加一个read_num字段(注意不要添加成了readnum否则就返回的是一个方法对象).
+之后makemigrations和migrate.
+在blog的views里面修改对阅读数+1的代码部分,由于blog类里已经没有readed_num这个方法了,而且对于不同的博客,相应的Readnum可能在后台没有记录,所以这时候就要分成两个部分,
+	1,当cookie没有记录而且这篇博客的阅读数存在记录,
+	2,当cookie没有记录,而且这篇博客没有阅读数记录
+代码如下:
+if not request.COOKIES.get('blog_%s_readed' % blog_id):  #当cookie不存在的时候才会进行阅读数+1
+    if Readnum.objects.filter(the_blog=the_blog).count():  #当这条博客有阅读记录的时候
+        readnum=Readnum.objects.get(the_blog=the_blog)
+        readnum.read_num+=1
+        readnum.save()
+    else:   #当没有这条博客的阅读记录的时候
+    	readnum=Readnum(the_blog=the_blog)   #为这条博客创建一个新的记录
+    	readnum.read_num+=1
+    	readnum.save()
+但上述代码有一个问题,就是没有阅读记录的博客在blog_detail页面显示的时候,不会出现阅读数为0,而是不显示,这时候就要对blo这个类中的read_num方法进行改进,代码如下:
+def read_num(self):
+    try:
+        return self.readnum.read_num
+    except Exception as e:
+        return 0
+这样就会在没有获取阅读数量的情况下,返回一个0值
+
+
+
+3,计数功能的优化(2):
+在上面那个中的计数方式只可以用于博客这一个app的计数,如果把计数的模块单独拿出来创建一个app,再建立其他的app与计数这个app的联系,这样就可以对其他类型的app来进行计数.
+django里有一个框架contenttypes,就是可以用来构建各个模型类之间的互通.
+首先要创建一个app叫read_count :python3 manage.py startapp read_count,并在settings里面完成注册,
+然后在blog.models中讲上一次创建的  class Readnum(models.Model):  删除这个类,并放在新创建的read_count.models中,为了构建模型之间的联系,在read_count.models中的完整代码如下:
+
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
+from django.db import models
+
+class Readnum(models.Model):
+    read_num=models.IntegerField(default=0)  #阅读计数
+    content_type = models.ForeignKey(ContentType, on_delete=models.DO_NOTHING)
+    object_id = models.PositiveIntegerField()
+    content_object = GenericForeignKey('content_type', 'object_id')
+
+
+
+
+
+
+
+

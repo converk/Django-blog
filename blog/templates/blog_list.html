@@ -1,0 +1,123 @@
+{% extends 'base.html' %}
+
+{% block title %}
+    我的网站
+{% endblock %}
+
+{% block nav_blog_active %}active{% endblock %}
+
+{% load staticfiles %}
+{% block home_style %}
+	<link rel="stylesheet" type="text/css" href="{% static "blog/blog.css" %}">
+{% endblock %}
+
+{% block content %}
+	<div class="container">  <!--.container 类用于固定宽度并支持响应式布局的容器。-->
+		<div class="row">
+			<div class="col-sm-8 col-md-8">  <!--两个class代表适用两种大小的屏幕-->
+				<div class="panel panel-default">
+					<div class="panel-heading">{% block blog_list_title %}博客列表{% endblock %}</div>
+														<!--计算这一共有多少篇博客-->
+					<div class="panel-body">
+						{% for blog in page_of_blogs.object_list %}   <!--遍历这一页内的所有博客所有博客-->
+							<div class="blog">  <!--设置一个属性,写css方便-->
+								<a href="{% url 'blog_detail' blog.pk %}">
+						    	<h3>{{ blog.title }}</h3> 
+						    	</a> <!--blog.pk是每个blog的id.显示每一篇博客的标题,并设置到指定博客的链接-->
+						    	<p>
+						    		<span class="glyphicon glyphicon-tag"></span>:<a href="{% url 'blogs_all_of_the_type' blog.blog_type.pk %}">{{ blog.blog_type }}</a>
+						    		<span class="glyphicon glyphicon-time"></span>:{{ blog.Create_time }}
+						    		阅读({{ blog.read_num }})
+						    	</p>
+
+						    	<p>{{ blog.content|striptags|truncatechars:30 }}</p>
+						   		 <!--只显示博客内容的前30个字符-->
+							</div>
+						{% empty %}  <!--当博客为空的时候输出下面的提示文本-->
+							<div class="blog">
+								<h3>--暂无博客，敬请期待--</h3>
+							</div>
+						{% endfor %}
+			 		</div>
+				</div>
+				<div class="paginator">
+					<!--页码的显示和设置链接-->
+					<div aria-label="Page navigation">
+					  <ul class="pagination">
+					  	<li>
+					  	{% if page_of_blogs.has_previous %}
+					  	 <!--?page是设置相对链接-->
+					  		<a href="?page={{ page_of_blogs.previous_page_number }}" aria-label="Previous">
+					       		<span aria-hidden="true">&laquo;</span>
+					      	</a>
+					  	{% else %}
+					  		<span aria-hidden="true">&laquo;</span>
+					  	{% endif %}
+					  </li>
+					    {% for page_number in page_range %}
+					    	<!--将页码循环显示出来,并添加相应链接,当前页高亮-->
+					    	{% if page_number == page_of_blogs.number %}
+					    		<li class="active">
+					    			<a href="?page={{ page_number }}">{{ page_number }}</a>
+					    		</li>
+					    	{% else %}
+					    		<li><a href="?page={{ page_number }}">{{ page_number }}</a></li>
+					    	{% endif %}
+						{% endfor %}   <!--需要使用关键字的时候要用{和%-->
+						<li>
+						{% if page_of_blogs.has_next %}
+					  		<a href="?page={{ page_of_blogs.next_page_number }}" aria-label="Next">
+					       		<span aria-hidden="true">&raquo;</span>
+					      	</a>
+					  	{% else %}
+					  		<span aria-hidden="true">&raquo;</span>
+					  	{% endif %}
+					  </li>
+					  </ul>
+					</div>
+					<div>
+						<p>
+							一共有{{ page_of_blogs.paginator.count }}篇博客,
+							共有{{ page_of_blogs.paginator.num_pages }}页,
+							这是第{{ page_of_blogs.number }}页
+						</p>
+					</div>    
+				</div>
+			</div>
+			<div class="col-sm-4 col-md-4">
+				<div class="panel panel-default">
+					  <div class="panel-heading">博客分类</div>
+					  <div class="panel-body">
+						<ul>
+							{% for blog_type in blog_types %}
+								<li>
+									<a href="{% url 'blogs_all_of_the_type' blog_type.pk %}">
+										{{ blog_type.type_name }}({{ blog_type.blog_count }})
+									</a>
+								</li>
+							{% empty %}
+								<li>暂无分类</li>
+							{% endfor %}
+						</ul>
+					  </div>
+				</div>
+				<div class="panel panel-default">
+					  <div class="panel-heading">日期列表</div>
+					  <div class="panel-body">
+						<ul>
+							{% for blog_date,blog_count in blog_dates.items %}
+							<li>
+								<!--设置相应的链接到相应月份所发表的博客,blogs_with_date是url路径的别名,blog_date.year blog_date.month是这个路径里的两个参数-->
+								<a href="{% url 'blogs_with_date' blog_date.year blog_date.month %}">
+									<p>{{ blog_date|date:"Y-m" }}({{ blog_count }})</p>  <!--使用过滤器对日期进行格式化-->
+								</a>
+							</li>
+							{% endfor %}
+						</ul>
+					  </div>
+				</div>
+			</div>
+		</div>
+	</div>
+    
+{% endblock %}

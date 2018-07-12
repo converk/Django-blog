@@ -1,0 +1,26 @@
+h3{
+	margin-top: 0em;
+}
+div.blog:not(:last-child){  /*除了最后一个,都用下面的style*/
+	margin-bottom: 3em;
+    border-bottom: 1px solid #ddd;
+}
+
+ul.blog-feature{
+	list-style-type: none;  /*去掉li前面的点*/
+}
+ul.blog-feature li{
+	display: inline-block;  /*li不分行*/
+	margin-right: 1em;
+}
+div.blog-content{
+	font-size: 130%;
+	text-indent: 2em;  /*首行缩进*/
+	margin-top: 2em;
+}
+div.paginator{
+	text-align: center;
+}
+div.blog_next_and_previous{
+	margin-top: 1em;
+}

@@ -1,0 +1,46 @@
+<!--設置模板-->
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+	<meta charset="UTF-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">  <!--针对IE浏览器,使用最新内核-->
+    <meta name="viewport" content="width=device-width, initial-scale=1">  <!--响应式布局-->
+	<title>{% block title %}{% endblock %}</title>
+	<!--相當於設置一個特徵-->
+	<link rel="stylesheet" type="text/css" href="/static/base.css">   <!--根据设置的静态路径,连接到外部css文件-->
+	<link rel="stylesheet" type="text/css" href="/static/bootstrap-3.37/css/bootstrap.min.css">   <!--使用css框架-->
+
+
+	<script type="text/javascript" src="/static/jquery.min.js"></script>   <!--解决不同浏览器对js的兼容问题-->
+	<script type="text/javascript" src="/static/bootstrap-3.37/js/bootstrap.min.js"></script>    <!--使用css框架的基本步骤-->
+
+	{% block home_style %}{% endblock %}
+</head>
+<body>
+	<!--导航条-->
+	<div class="navbar navbar-default" role="navigation">
+		<div class="container-fluid">   <!--响应式布局容器按照百分比填满整个页面(导航栏)-->
+			<div class="navbar-header">
+				<!--logo-->
+				 <button class="navbar-toggle collapsed" data-toggle="collapse" data-target="#bs-example-navbar-collapse-1"><!--设置下拉菜单,当屏幕过小的时候-->
+       				<span class="icon-bar"></span>   <!--在下拉的logo里加三条横线-->
+        			<span class="icon-bar"></span>
+        			<span class="icon-bar"></span>
+				 </button>  
+				<a class="navbar-brand" href="{% url 'home' %}">个人博客网站</a>
+			</div>
+			<div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
+				<ul class="nav navbar-nav">
+					<li class="{% block nav_home_active %}{% endblock %}">
+						<a href="/">首页</a>
+					</li>
+					<li class="{% block nav_blog_active %}{% endblock %}">
+						<a href="{% url 'blog_list' %}">博客</a>
+					</li>
+				</ul>
+			</div>
+		</div>
+	</div>
+	{% block content %}{% endblock %}
+</body>
+</html>
