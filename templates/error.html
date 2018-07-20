@@ -1,15 +1,14 @@
 {% extends 'base.html' %}
 
 {% block title %}
-		我的网站|首页
+		我的网站|错误
 {% endblock %}
 
 {% block home_style %}
-	<link rel="stylesheet" type="text/css" href="/static/home.css">
 {% endblock %}
 
 {% block nav_home_active %}active{% endblock %}
 
 {% block content %}
-		<h3 class="home-content">欢迎</h3>
+		{{ message }}
 {% endblock %}

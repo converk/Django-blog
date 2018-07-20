@@ -1,12 +1,12 @@
-from django.shortcuts import render_to_response
-from django.shortcuts import get_object_or_404
+from django.shortcuts import render,get_object_or_404
 from django.core.paginator import Paginator   #导入分页器
 from django.db.models import Count #导入计算每个类型博客数量的所需的类
-from .models import blog,blogtype
 from django.contrib.contenttypes.models import ContentType
 from read_count.models import Readnum,Readnum_extand,Readnum_detail
 from django.utils import timezone
 from read_count import utils
+from .models import blog,blogtype
+from comment.models import Comment
 
 # Create your views here.
 #这是显示在主页上的
@@ -55,7 +55,7 @@ def get_blog_common_data(request,blogs_all_list):   #代码中重复的部分
 def blog_list(request):  #创建博客的列表
 	blogs_all_list=blog.objects.all()   #获得所有博客
 	context=get_blog_common_data(request,blogs_all_list)
-	return render_to_response('blog_list.html',context)
+	return render(request,'blog_list.html',context)
 
 
 
@@ -65,7 +65,7 @@ def blogs_all_of_the_type(request,blog_type_id):
 	context=get_blog_common_data(request,blogs_all_list)
 	context['blogs_all_of_the_type']=blog.objects.filter(blog_type=blog_type)	#通过blog_type来过滤相应的博客
 	context['blog_type']=blog_type   #保存blog_type的名字，在html中会用到
-	return render_to_response('blogs_all_of_the_type.html',context)
+	return render(request,'blogs_all_of_the_type.html',context)
 
 
 
@@ -74,7 +74,7 @@ def blogs_with_date(request,year,month):  #代码与之前的大多是重复的
 	context=get_blog_common_data(request,blogs_all_list)
 	context['blogs_all_of_the_date']=blog.objects.filter(Create_time__year=year,Create_time__month=month)
 	context['date']='%s-%s' %(year,month)
-	return render_to_response('blogs_all_of_the_date.html',context)
+	return render(request,'blogs_all_of_the_date.html',context)
 
 
 
@@ -91,9 +91,12 @@ def blog_detail(request,blog_id):  #显示博客的具体信息
 
         #对于当天的阅读数
         date=timezone.now().date()  #获取一天的日期
-        readnum_detail,created=Readnum.objects.get_or_create(content_type=cn,object_id=blog_id,date=date)
+        readnum_detail,created=Readnum.objects.get_or_create(content_type=cn,object_id=blog_id)
         readnum_detail.read_num+=1
         readnum_detail.save()
+
+    blog_content_type=ContentType.objects.get_for_model(the_blog)
+    comments=Comment.objects.filter(content_type=blog_content_type,object_id=blog_id)
 
     context={}
     context['blog']=the_blog
@@ -101,7 +104,8 @@ def blog_detail(request,blog_id):  #显示博客的具体信息
     context['previous_blog']=blog.objects.filter(Create_time__gt=the_blog.Create_time).last()
     #获得该篇博客的下一篇博客,用过滤器筛选,然后选择第一个 __lt是小于这个创建时间
     context['next_blog']=blog.objects.filter(Create_time__lt=the_blog.Create_time).first()
-    response=render_to_response('blog_detail.html',context)
+    context['comments']=comments
+    response=render(request,'blog_detail.html',context)
     response.set_cookie('blog_%s_readed' % blog_id,'true')  
     #为已经阅读过的blog设置cookie,没有设置失效时间就是当浏览器关闭的时候才会失效
     return response

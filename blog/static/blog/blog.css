@@ -22,5 +22,12 @@ div.paginator{
 	text-align: center;
 }
 div.blog_next_and_previous{
-	margin-top: 1em;
+	margin-top: 2em;
+}
+div.comment-area{
+	margin-top: 2em;
+}
+h3.comment-area-title{  /*将提交评论与登录的输入用一条线分隔开*/
+	border-bottom: 1px solid #ccc;
+	padding-bottom: 0.6em;
 }

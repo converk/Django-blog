@@ -45,5 +45,45 @@
 				</div>
 			</div>
 		</div>
+		<div class="row">
+			<div class="col-sm-8 col-sm-offset-1">
+				<div class="comment-area">
+					<h3 class="comment-area-title">提交评论</h3>
+					{% if user.is_authenticated %}  <!--判断是否登录,user是request里面的信息-->
+						{{ user }},欢迎评论
+						<form action="{% url "submit_comment" %}" method="POST">
+							{% csrf_token %} <!--绕过django的一个认证机制-->
+							<!--评论内容-->
+							<textarea name="text"></textarea>  <!--可以多行输入的文本域-->
+							<!--评论对象的类型-->
+							<input type="hidden" name="content_type" value="blog">
+							<!--评论对象的id-->
+							<input type="hidden" name="object_id" value={{ blog.pk }}>
+							<!--submit-->
+							<input type="submit" value="评论">
+
+						</form>
+					{% else %}
+						您尚未登录,请登录后再评论
+						<a href="{% url "userlogin" %}?from={{ request.get_full_path }}">登录</a>
+						<!--get_full_path获得这个页面完整路径-->
+					{% endif %}
+				</div>
+			</div>
+			<div class="col-sm-8 col-sm-offset-1">
+				<div class="comment-area">
+					<h3 class="comment-area-title">评论列表</h3>
+					{% for comment in comments %}
+					<div>
+						{{ comment.user }}
+						({{ comment.comment_time }}):
+						{{ comment.text }}
+					</div>
+					{% empty %}
+						<h4>----暂无评论----</h4>
+					{% endfor %}
+				</div>
+			</div>
+		</div>
 	</div>
 {% endblock %}

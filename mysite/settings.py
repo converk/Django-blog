@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'read_count',
     'ckeditor',  #富文本编辑
     'ckeditor_uploader',  #使得能够上传图片
+    'comment',
 ]
 
 MIDDLEWARE = [

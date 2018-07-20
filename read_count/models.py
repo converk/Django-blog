@@ -9,7 +9,7 @@ class Readnum(models.Model):
     object_id = models.PositiveIntegerField()
     content_object = GenericForeignKey('content_type', 'object_id')
 
-class Readnum_extand():   #获取博客的阅读次数,不写在blog里面是为了更好的封装
+class Readnum_extand():  #获取博客的阅读次数,不写在blog里面是为了更好的封装
     def read_num(self):
         try:
 	        cn=ContentType.objects.get_for_model(self)
