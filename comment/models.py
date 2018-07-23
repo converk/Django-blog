@@ -14,6 +14,9 @@ class Comment(models.Model):
 	text=models.TextField()  #评论的内容,不限长度
 	comment_time=models.DateTimeField(auto_now_add=True)  #自动添加评论的时间
 	user=models.ForeignKey(User,on_delete=models.DO_NOTHING)  #删除评论的时候,不影响用户的数据
+
+	class Meta:
+		ordering=['-comment_time']   #按照创建的时间排序
 	
 
 

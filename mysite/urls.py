@@ -24,8 +24,10 @@ urlpatterns = [
     path('blog/',include('blog.urls')),#应用blog中的urls配置
     path('',views.home,name='home'),
     path('ckeditor',include('ckeditor_uploader.urls')),#配置ckeditor
-    path('userlogin/',views.userlogin,name='userlogin'),
     path('comment/',include('comment.urls')),#应用blog中的urls配置
+    path('register_user/',views.register_user,name='register_user'),
+    path('userlogin/',views.userlogin,name='userlogin'),
+   
 ]
 
 urlpatterns+=static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

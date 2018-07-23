@@ -7,6 +7,7 @@ from django.utils import timezone
 from read_count import utils
 from .models import blog,blogtype
 from comment.models import Comment
+from comment.forms import CommentForm
 
 # Create your views here.
 #这是显示在主页上的
@@ -105,6 +106,12 @@ def blog_detail(request,blog_id):  #显示博客的具体信息
     #获得该篇博客的下一篇博客,用过滤器筛选,然后选择第一个 __lt是小于这个创建时间
     context['next_blog']=blog.objects.filter(Create_time__lt=the_blog.Create_time).first()
     context['comments']=comments
+
+    #data是初始化
+    data={}
+    data['content_type']=blog_content_type.model  #获模型名
+    data['object_id']=blog_id  #获取id名
+    context['commentform']=CommentForm(initial=data)  #实例化comment的文本框  #初始化,给隐藏的content_type与object_id一个默认值
     response=render(request,'blog_detail.html',context)
     response.set_cookie('blog_%s_readed' % blog_id,'true')  
     #为已经阅读过的blog设置cookie,没有设置失效时间就是当浏览器关闭的时候才会失效

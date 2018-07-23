@@ -3,7 +3,8 @@ from blog.models import blog
 from django.contrib.contenttypes.models import ContentType
 from read_count.utils import get_seven_days_read
 from django.contrib.auth import authenticate, login
-from .forms import LoginForm
+from .forms import LoginForm,RegForm
+from django.contrib.auth.models import User
 
 def home(request):
 	content_type=ContentType.objects.get_for_model(blog)  #获取模型
@@ -30,16 +31,33 @@ def userlogin(request):
 	if request.method == "POST":  #如果请求这个方法的方式是POST
 		loginform=LoginForm(request.POST)  #通过request得到用户名和密码
 		if loginform.is_valid():
-			username=loginform.cleaned_data['username']  #cleaned_data是清理过的数据,可以直接使用
-			password=loginform.cleaned_data['password']  
-			user = authenticate(request, username=username, password=password)
-			if user is not None:
-				login(request, user)
-				return redirect(request.GET.get('from'))  #登录成功返回到登录之前的界面get不到则返回到主页
-			else:    #如果用户名和密码不可用
-				loginform.add_error(None,'用户名或者密码不正确')  #将错误信息加到表单中,登录失败则在页面显示这个错误信息
+			user=loginform.cleaned_data['user']  #这里的user已经在models里面验证过了
+			login(request, user)
+			return redirect(request.GET.get('from','/'))  #登录成功返回到登录之前的界面get不到则返回到主页
 	else:  #如果请求这个方法的方式不是POSt,专加载这个页面,
 		loginform=LoginForm()
 	context={}
 	context['loginform']=loginform
 	return render(request,'userlogin.html',context)
+
+
+def register_user(request):  #注册用户
+	if request.method == "POST":
+		regform=RegForm(request.POST)
+		if regform.is_valid():
+			username=regform.cleaned_data['username']
+			email=regform.cleaned_data['email']
+			password=regform.cleaned_data['password']
+			#创建用户
+			user=User.objects.create(username,email,password)
+			user.save()
+
+			#登录
+			user = authenticate(username=username, password=password)
+			login(request, user)
+			return redirect(request.GET.get('from','/'))  #登录成功返回到登录之前的界面get不到则返回到主页
+	else:
+		regform=RegForm()
+	context={}
+	context['regform']=regform
+	return render(request,'register.html',context)
